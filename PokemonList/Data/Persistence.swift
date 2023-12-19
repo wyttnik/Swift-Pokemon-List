@@ -221,26 +221,6 @@ class PersistenceController {
             index += 1
             return false
         })
-//        let batchInsertRequest = NSBatchInsertRequest(entity: PokemonPreview.entity()) { (managedObject: NSManagedObject) -> Bool in
-//          guard index < total else { return true }
-//
-//          if let pokemonPreview = managedObject as? PokemonPreview {
-//            let data = pokemonList[index]
-//              pokemonPreview.id = data.id
-//              pokemonPreview.name = data.name
-//              Task{
-//                  do {
-//                      try await PokeApi.apiManager.savePokemonImage(data.name,for: data.id)
-//                  } catch {
-//                      self.logger.debug("Error saving image to disc.")
-//                  }
-//
-//              }
-//          }
-//
-//          index += 1
-//          return false
-//        }
         
         return batchInsertRequest
     }

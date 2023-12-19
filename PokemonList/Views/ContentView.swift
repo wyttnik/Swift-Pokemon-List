@@ -8,7 +8,6 @@
 import SwiftUI
 
 struct ContentView: View {
-//    @StateObject var detailsViewModel = PokemonDetailsViewModel()
     @Environment(\.managedObjectContext) private var viewContext
     @StateObject var viewModel = PersistenceController.shared.contentViewModel
     @State var selection: String? = nil
@@ -48,7 +47,6 @@ struct ContentView: View {
                           dismissButton: .default(alertItem.buttonTitle,action:{Task { await fetchPokemons()}}))
                 }
             }
-//            .environmentObject(detailsViewModel)
             .navigationViewStyle(.stack)
         }
     }
