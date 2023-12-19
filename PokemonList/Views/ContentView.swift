@@ -8,34 +8,62 @@
 import SwiftUI
 
 struct ContentView: View {
-    @StateObject var viewModel = PokemonListViewModel()
-    @StateObject var detailsViewModel = PokemonDetailsViewModel()
+//    @StateObject var detailsViewModel = PokemonDetailsViewModel()
+    @Environment(\.managedObjectContext) private var viewContext
+    @StateObject var viewModel = PersistenceController.shared.contentViewModel
     @State var selection: String? = nil
+    @State var isLoading = false
+    @State var hasError = false
+    
+    @FetchRequest(sortDescriptors: [SortDescriptor(\.id)])
+    private var pokemons: FetchedResults<PokemonPreview>
+    
     
     let columns = [GridItem(.flexible()),GridItem(.flexible())]
     
     var body: some View {
         GeometryReader{ geometry in
-            
             NavigationView {
-                            ScrollView{
-                                LazyVGrid(columns: columns, spacing: 10) {
-                                    ForEach(viewModel.pokemons, id: \.name) { pokemon in
-                                        NavigationLink(destination: DetailsView(name: pokemon.name), tag: pokemon.name, selection: $selection) {
-                                            PokemonPixelView(id: viewModel.getIndex(pokemon), cellSize: geometry.size.width/3, name: pokemon.name, selection: $selection)
-                                        }
-                                    }
-                                }
+                ScrollView{
+                    LazyVGrid(columns: columns,spacing: 10) {
+                        ForEach(pokemons, id: \.id) { pokemon in
+                            NavigationLink(destination: DetailsView(id: pokemon.id ?? "1"), tag: pokemon.name ?? "", selection: $selection) {
+                                PokemonPixelView(pokemon: pokemon, cellSize: geometry.size.width/3, selection: $selection)
                             }
-                            .navigationTitle("Pokemon main page")
-                            .navigationBarTitleDisplayMode(.inline)
-                            .alert(item: $viewModel.alertItem) { alertItem in
-                                Alert(title: alertItem.title, message: alertItem.message, dismissButton: .default(alertItem.buttonTitle,  action:{Task { await viewModel.getPokemons()}}))
-                            }
+                        }
+                    }
+                }
+                .navigationBarTitle("Pokemon main page")
+                .navigationBarTitleDisplayMode(.inline)
+                .navigationBarItems(trailing: Button(action: {
+                    Task{
+                        await fetchPokemons()
+                    }
+                }) {
+                    Image(systemName: "arrow.2.circlepath")}.disabled(isLoading)
+                )
+                .alert(item: $viewModel.alertItem) { alertItem in
+                    Alert(title: alertItem.title,
+                          message: alertItem.message,
+                          dismissButton: .default(alertItem.buttonTitle,action:{Task { await fetchPokemons()}}))
+                }
             }
-            .environmentObject(detailsViewModel)
+//            .environmentObject(detailsViewModel)
             .navigationViewStyle(.stack)
         }
+    }
+}
+
+extension ContentView {
+    private func fetchPokemons() async {
+        isLoading = true
+        do {
+            try await PersistenceController.shared.fetchPokemons()
+        } catch {
+            //self.error = error as? QuakeError ?? .unexpectedError(error: error)
+            self.hasError = true
+        }
+        isLoading = false
     }
 }
 

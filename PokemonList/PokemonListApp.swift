@@ -9,9 +9,13 @@ import SwiftUI
 
 @main
 struct PokemonListApp: App {
+    
+    let pokemonController: PersistenceController = .shared
+    
     var body: some Scene {
         WindowGroup {
             ContentView()
+                .environment(\.managedObjectContext, pokemonController.container.viewContext)
         }
     }
 }
